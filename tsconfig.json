@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    // ✅ Output compiled files here (optional)
+    "outDir": "./dist",
+
+    // ✅ Use modern browser JavaScript
+    "target": "es2017",
+    "module": "es6",
+    "lib": ["es2017", "dom"],
+
+    // ✅ Strictness (recommended)
+    "strict": true,
+    "noImplicitAny": true,
+
+    // ✅ Make debugging easier
+    "sourceMap": true,
+
+    // ✅ Ignore library type-checking issues
+    "skipLibCheck": true,
+
+    // 🚫 Not needed for this assignment (Node/React features)
+    "jsx": "preserve",
+    "types": [],
+    "isolatedModules": false
+  },
+  "include": ["./*.ts"]
+}
