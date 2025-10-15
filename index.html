@@ -4,18 +4,26 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Student Restaurants</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="main.js"></script>
+
+
   <!-- Mapbox CSS -->
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.10.0/mapbox-gl.css" rel="stylesheet" />
 </head>
 <body>
   <h1>🍽️ Student Restaurants</h1>
+
+  <label for="menu-type">Show menu:</label>
+  <select id="menu-type">
+    <option value="day">Today</option>
+    <option value="week">This week</option>
+  </select>
+
   <div id="restaurant-list"></div>
   <div id="map"></div>
 
-  <!-- Compiled JS output from TypeScript -->
-  <script src="main.js"></script>
-  <!-- Mapbox JS -->
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.10.0/mapbox-gl.js"></script>
+  <script src="dist/main.js"></script>
 </body>
 </html>

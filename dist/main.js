@@ -1,44 +1,96 @@
 "use strict";
-// TypeScript entry point
-// Mapbox access token (from your teacher)
 const MAPBOX_TOKEN = 'pk.eyJ1IjoiaWxra2FtdGsiLCJhIjoiY20xZzNvMmJ5MXI4YzJrcXpjMWkzYnZlYSJ9.niDiGDLgFfvA2DMqxbB1QQ';
-const API_URL = 'https://media1.edu.metropolia.fi/restaurant';
+// API base URLs
+const API_BASE = 'https://media1.edu.metropolia.fi/restaurant/api/v1';
+const API_RESTAURANTS = `${API_BASE}/restaurants`;
+const API_DAY = `${API_BASE}/day`;
+const API_WEEK = `${API_BASE}/week`;
 async function init() {
     const listElement = document.getElementById('restaurant-list');
+    const mapElement = document.getElementById('map');
+    const toggle = document.getElementById('menu-type');
+    if (!listElement || !mapElement || !toggle) {
+        console.error('One or more DOM elements not found.');
+        return;
+    }
     try {
-        // Fetch restaurant data
-        const response = await fetch(API_URL);
-        const restaurants = await response.json();
-        // Create list of restaurant names
-        listElement.innerHTML = restaurants.map((r) => `
-      <div class="restaurant-item">
-        <strong>${r.name}</strong><br>
-        ${r.address || ''}, ${r.city || ''}
-      </div>
-    `).join('');
-        // Initialize Mapbox
+        // Fetch restaurants
+        const res = await fetch(API_RESTAURANTS);
+        const restaurants = await res.json();
+        // Create Mapbox map
         mapboxgl.accessToken = MAPBOX_TOKEN;
         const map = new mapboxgl.Map({
-            container: 'map',
+            container: mapElement,
             style: 'mapbox://styles/mapbox/streets-v11',
             center: [24.94, 60.17], // Helsinki
             zoom: 12
         });
-        // Add markers for each restaurant
+        // Render restaurant list
+        listElement.innerHTML = restaurants
+            .map((r) => `
+      <div class="restaurant-item" data-id="${r._id}">
+        <strong>${r.name}</strong><br>
+        ${r.address || ''}, ${r.city || ''}
+      </div>
+    `)
+            .join('');
+        // Add map markers
         restaurants.forEach((r) => {
-            if (r.location && r.location.coordinates) {
-                const [lon, lat] = r.location.coordinates;
+            var _a;
+            const coords = (_a = r.location) === null || _a === void 0 ? void 0 : _a.coordinates;
+            if (Array.isArray(coords) && coords.length === 2) {
+                const [lon, lat] = coords;
                 new mapboxgl.Marker()
                     .setLngLat([lon, lat])
-                    .setPopup(new mapboxgl.Popup().setText(r.name))
+                    .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(r.name))
                     .addTo(map);
             }
         });
+        // Handle restaurant click to show menus
+        listElement.addEventListener('click', async (event) => {
+            const target = event.target;
+            const item = target.closest('.restaurant-item');
+            if (!item)
+                return;
+            const id = item.dataset.id;
+            if (!id)
+                return;
+            const menuType = toggle.value === 'day' ? API_DAY : API_WEEK;
+            try {
+                const menuRes = await fetch(`${menuType}/${id}`);
+                const menuData = await menuRes.json();
+                displayMenu(item, menuData);
+            }
+            catch (err) {
+                console.error('Error fetching menu:', err);
+                alert('Failed to load menu.');
+            }
+        });
     }
-    catch (error) {
+    catch (err) {
+        console.error('Error loading restaurants:', err);
         listElement.innerHTML = `<p>Error loading restaurants 😢</p>`;
-        console.error(error);
     }
+}
+// Display menu under the clicked restaurant instead of using alert
+function displayMenu(container, menuData) {
+    // Remove any existing menu
+    const existingMenu = container.querySelector('.menu');
+    if (existingMenu)
+        existingMenu.remove();
+    const menuDiv = document.createElement('div');
+    menuDiv.className = 'menu';
+    menuDiv.style.marginLeft = '1rem';
+    menuDiv.style.fontSize = '0.9rem';
+    if (Array.isArray(menuData) && menuData.length > 0) {
+        menuDiv.innerHTML = menuData
+            .map((item) => `<div>• ${item.name || item.dish || 'Unnamed item'} ${item.price ? `- ${item.price}€` : ''}</div>`)
+            .join('');
+    }
+    else {
+        menuDiv.textContent = 'No menu available.';
+    }
+    container.appendChild(menuDiv);
 }
 init();
 //# sourceMappingURL=main.js.map
